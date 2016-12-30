@@ -1,0 +1,6 @@
+################
+# Bibliografia #
+################
+https://en.wikipedia.org/wiki/Netpbm_format
+https://ugurkoltuk.wordpress.com/2010/03/04/an-extreme-simple-pgm-io-api/
+http://stackoverflow.com/a/17554531
