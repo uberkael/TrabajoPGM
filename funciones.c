@@ -59,7 +59,7 @@ void pgm_cabecera(const char *filename, const PGMData *datos)
 		exit(EXIT_FAILURE);
 	}
 	fprintf(archivo, "P5 ");
-	fprintf(archivo, "%d %d ", datos->alto, datos->ancho);
+	fprintf(archivo, "%d %d ", datos->ancho, datos->alto);
 	fprintf(archivo, "%d ", datos->max_gray);
 	fclose(archivo);
 }
@@ -75,7 +75,7 @@ void pgm(const char *filename, const PGMData *datos)
 		exit(EXIT_FAILURE);
 	}
 	fprintf(archivo, "P5 ");
-	fprintf(archivo, "%d %d ", datos->alto, datos->ancho);
+	fprintf(archivo, "%d %d ", datos->ancho, datos->alto);
 	fprintf(archivo, "%d ", datos->max_gray);
 	if (datos->max_gray > 255) {
 		for (i=0; i<datos->ancho; ++i) {
@@ -213,10 +213,10 @@ void cuadro_gris(PGMData *datos, int ancho, int alto, int xini, int yini, int gr
 		perror("Datos fuera de rango");
 		exit(EXIT_FAILURE);
 	}
-	for (i=yini; i<ancho+yini; ++i) {
-		for (j=xini; j<alto+xini; ++j) {
+	for (i=xini; i<ancho+xini; ++i) {
+		for (j=yini; j<alto+yini; ++j) {
 			//printf("%d %d\n", i, j);
-			datos->matrix[i][j]=gris;
+			datos->matrix[j][i]=gris;
 		}
 	}
 }
