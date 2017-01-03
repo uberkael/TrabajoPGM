@@ -213,8 +213,9 @@ void cuadro_gris(PGMData *datos, int ancho, int alto, int xini, int yini, int gr
 		perror("Datos fuera de rango");
 		exit(EXIT_FAILURE);
 	}
-	for (i=yini; i<alto+yini; ++i) {
-		for (j=xini; j<ancho+xini; ++j) {
+	for (i=yini; i<ancho+yini; ++i) {
+		for (j=xini; j<alto+xini; ++j) {
+			//printf("%d %d\n", i, j);
 			datos->matrix[i][j]=gris;
 		}
 	}
