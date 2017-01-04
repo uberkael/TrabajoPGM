@@ -3,21 +3,54 @@
 #include <stdlib.h>
 #include <string.h>
 #include "funciones.c"
-// int main(int argc, char *argv[]) {
+#include <unistd.h>
+#include <time.h>
+#include <sys/times.h>
+#include <sys/wait.h>
+#include <pthread.h>
+
+typedef struct _Params {
+ PGMData * Datos;
+ int Ancho,Alto,xInicial,yInicial,Color,opcion;
+}Params, *Pparams;
+
+void *imprimir(void *pVoid)
+{
+	Pparams params = (Pparams)pVoid;
+printf("Thread %lu  \n", pthread_self());
+//struct readThreadParams *readParams = n;
+//printf("ANCHO DENTRO %d\n",params->Ancho);
+switch(params->opcion){
+case 1:
+cuadro_blanco(params->Datos, params->Ancho, params->Alto, params->xInicial, params->yInicial);
+break;
+case 2:
+cuadro_negro(params->Datos, params->Ancho, params->Alto, params->xInicial, params->yInicial);
+break;
+case 3:
+cuadro_gris(params->Datos, params->Ancho, params->Alto, params->xInicial, params->yInicial, params->Color);
+break;
+case 4:
+cuadro_ruido(params->Datos, params->Ancho, params->Alto, params->xInicial, params->yInicial);
+break;
+}
+pthread_exit(NULL);
+}
+
 int main() {
+
+	struct tms InfoInicio, InfoFin;
+	clock_t t_inicio, t_fin;
+	long tickporseg;
+	tickporseg= sysconf(_SC_CLK_TCK);
+	t_inicio= times(&InfoInicio);
+	pthread_attr_t attr;
+	pthread_t thid;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	Params Params;
 	PGMData *datos=malloc (sizeof (struct _PGMData));
-	// int dato[ancho][alto]={
-	// 	{0, 0, 1, 1, 0, 0, 1, 1, 0, 0},
-	// 	{0, 0, 1, 1, 0, 0, 1, 1, 0, 0},
-	// 	{0, 0, 1, 1, 0, 0, 1, 1, 0, 0},
-	// 	{0, 0, 1, 1, 0, 0, 1, 1, 0, 0},
-	// 	{0, 0, 1, 1, 0, 0, 1, 1, 0, 0},
-	// 	{0, 0, 1, 1, 0, 0, 1, 1, 0, 0},
-	// 	{0, 0, 1, 1, 0, 0, 1, 1, 0, 0},
-	// 	{0, 0, 1, 1, 0, 0, 1, 1, 0, 0},
-	// 	{0, 0, 1, 1, 0, 0, 1, 1, 0, 0},
-	// 	{0, 0, 1, 1, 0, 0, 1, 1, 0, 0}
-	// };
+
 	// PGMData datos;
 	/* Asignando memoria y datos */
 	datos->ancho=1000;
@@ -25,36 +58,151 @@ int main() {
 	datos->max_gray=255;
 	datos->fichero="hola.pgm";
 	datos->matrix=allocate_dynamic_matrix(datos->ancho, datos->alto);
-	// printf("%s\n", genera_cadena());
-	// printf("%s\n", limites_de_imagen(ancho, alto));
-	// printf("%s\n", genera_negro(10, 5));
-	// printf("%s\n", genera_blanco(10, 5));
+
 	/* Escribe la cabecera del fichero */
 	pgm_cabecera(datos->fichero, datos);
-	/* Ruido blanco toda la imagen */
-	//cuadro_ruido(datos, 1000, 1000, 0, 0); // Linea de ruido
-	/* Creando objetos (Ancho, Alto, xInicial, yInicial, Color)*/
-	cuadro_negro(datos, 1000, 1000, 0, 0); // Todo de negro
-	cuadro_blanco(datos, 500, 1000, 0, 0); // Mitad de blanco
-	cuadro_gris(datos, 500, 1000, 20, 0, 50); // Mitad gris un poco desplazada
-	cuadro_blanco(datos, 1000, 20, 0, 90); // Linea arriba
-	cuadro_blanco(datos, 1000, 20, 0, 20); // Identica un poco mas arriba
-	cuadro_blanco(datos, 250, 250, 200, 200); // Cuadro esquina izquierda
-	cuadro_gris(datos, 250, 100, 600, 500, 100); // Rectangulo derecha
-	cuadro_gris(datos, 200, 50, 625, 525, 50); // dentro del anterior
-	cuadro_gris(datos, 150, 20, 650, 540, 20); // dentro del anterior
-	cuadro_ruido(datos, 200, 200, 800, 800); // Ruido abajo derecha
-	cuadro_ruido(datos, 800, 10, 100, 700); // Linea de ruido
-	cuadro_negro(datos, 2, 1000, 5, 0); // Linea vertical izquierda
+	Params.Datos=datos;
+	int opcion;
+	int salir=0;
+  int fallo=0;
+  int Ancho, Alto, xInicial, yInicial, Color;
+  while(salir==0){
+    system("clear");
+    if(fallo==1){
+      printf ("\033[31m OPCION MAL INGRESADA \n");
+      fallo=0;
+    }
+    printf ("\033[34m \n"); //Eleccion de color AZUL para las opciones.
+		printf("1: Insertar cuadrado blanco \n");
+		printf("2: Insertar cuadrado negro \n");
+		printf("3: Insertar cuadrado gris \n");
+		printf("4: Insertar cuadrado ruido \n");
+		printf("5: Salir \n");
+		scanf("%d",&opcion);
+		switch(opcion){
+		case 1 :
+    system("clear");
+		printf("Introduzca Ancho: ");
+		scanf("%d",&Ancho);
+    system("clear");
+    printf("Introduzca Alto: ");
+		scanf("%d",&Alto);
+    system("clear");
+    printf("Introduzca coordenada X inicial: ");
+		scanf("%d",&xInicial);
+    system("clear");
+    printf("Introduzca coordenada Y inicial: ");
+		scanf("%d",&yInicial);
+		Params.Ancho = Ancho;
+		Params.Alto = Alto;
+		Params.xInicial = xInicial;
+		Params.yInicial = yInicial;
+		Params.opcion=opcion;
+		pthread_create(&thid, &attr, imprimir, &Params);
+
+		break;
+		case 2:
+    system("clear");
+    printf("Introduzca Ancho: ");
+		scanf("%d",&Ancho);
+    system("clear");
+    printf("Introduzca Alto: ");
+		scanf("%d",&Alto);
+    system("clear");
+    printf("Introduzca coordenada X inicial: ");
+		scanf("%d",&xInicial);
+    system("clear");
+    printf("Introduzca coordenada Y inicial: ");
+		scanf("%d",&yInicial);
+		Params.Ancho = Ancho;
+		Params.Alto = Alto;
+		Params.xInicial = xInicial;
+		Params.yInicial = yInicial;
+		Params.opcion=opcion;
+		pthread_create(&thid, &attr, imprimir, &Params);
+		break;
+		case 3:
+    system("clear");
+    printf("Introduzca Ancho: ");
+		scanf("%d",&Ancho);
+    system("clear");
+    printf("Introduzca Alto: ");
+		scanf("%d",&Alto);
+    system("clear");
+    printf("Introduzca coordenada X inicial: ");
+		scanf("%d",&xInicial);
+    system("clear");
+    printf("Introduzca coordenada Y inicial: ");
+		scanf("%d",&yInicial);
+    system("clear");
+    printf("Introduzca escala de gris: ");
+    scanf("%d",&Color);
+		Params.Ancho = Ancho;
+		Params.Alto = Alto;
+		Params.xInicial = xInicial;
+		Params.yInicial = yInicial;
+		Params.opcion=opcion;
+    Params.Color=Color;
+		pthread_create(&thid, &attr, imprimir, &Params);
+		break;
+		case 4:
+    system("clear");
+    printf("Introduzca Ancho: ");
+    scanf("%d",&Ancho);
+    system("clear");
+    printf("Introduzca Alto: ");
+    scanf("%d",&Alto);
+    system("clear");
+    printf("Introduzca coordenada X inicial: ");
+    scanf("%d",&xInicial);
+    system("clear");
+    printf("Introduzca coordenada Y inicial: ");
+    scanf("%d",&yInicial);
+		Params.Ancho = Ancho;
+		Params.Alto = Alto;
+		Params.xInicial = xInicial;
+		Params.yInicial = yInicial;
+		Params.opcion=opcion;
+		pthread_create(&thid, &attr, imprimir, &Params);
+		break;
+		case 5:
+		salir=1;break;
+		default:
+      fallo=1;
+
+
+    }
+      }
+
 	/* Escribe los datos en el fichero (arriba la cabecera) */
 	pgm_escribe_datos(datos->fichero, datos);
 	/* TODO: en linux es facil transformar una imagen en otro formato
-	convert hola.pgn hola.jpg
+	convert hola.pgn hola.jpg*/
 	if (fork()==0)
-	{ execvp("convert", "convert hola.pgn hola.jpg"); perror("error ejecutando el programa"); }
-	*/
+	{
+		execlp("convert", "convert", "hola.pgm", "hola.jpg", NULL);
+		//execlp("convert", "convert", "hola.pgm", "hola.pdf", NULL);
+		perror("error ejecutando el programa");
+	}
+	if (fork()==0)
+		{
+
+			execlp("convert", "convert", "hola.pgm", "hola.pdf", NULL);
+			perror("error ejecutando el programa");
+		}
+
 	/* Libera la memoria */
 	deallocate_dynamic_matrix(datos->matrix, datos->ancho);
+	wait(NULL);
+	pthread_attr_destroy(&attr);
+	free(datos);
+	t_fin= times(&InfoFin);
+	printf ("Tiempo real: %7.2f\n",
+	(float)(t_fin - t_inicio)/tickporseg);
+	printf ("Tiempo de usuario: %7.2f\n",
+	(float)(InfoFin.tms_cutime - InfoInicio.tms_cutime)/tickporseg);
+	printf ("Tiempo de sistema: %7.2f\n",
+	(float)(InfoFin.tms_cstime - InfoInicio.tms_cstime)/tickporseg);
+
 	return 0;
 }
-
